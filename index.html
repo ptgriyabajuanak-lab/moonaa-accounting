@@ -12,6 +12,7 @@
         @media print {
             body { background: white; }
             .no-print { display: none; }
+            .print-only { display: block; }
         }
     </style>
 </head>
@@ -75,69 +76,60 @@
                     </div>
                 </div>
 
-                <!-- Form Input, Tambah Kategori & Laporan Grid -->
+                <!-- Form Input & Laporan Filter Grid -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     
-                    <!-- Left Column: Form & Kategori Manager -->
-                    <div class="space-y-6 lg:col-span-1 no-print">
-                        <!-- Form Card -->
-                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                            <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center">
-                                <i class="fa-solid fa-circle-plus text-indigo-600 mr-2"></i> Tambah Transaksi
-                            </h2>
-                            <form id="transaction-form" class="space-y-4">
-                                <div>
-                                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Tanggal</label>
-                                    <input type="date" id="tx-date" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Jenis Transaksi</label>
-                                    <select id="tx-type" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                        <option value="Pemasukan">Pemasukan (Cash In)</option>
-                                        <option value="Pengeluaran">Pengeluaran (Cash Out)</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Kategori</label>
-                                    <select id="tx-category" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                        <!-- Dinamis dari Firebase -->
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Keterangan / Deskripsi</label>
-                                    <input type="text" id="tx-desc" placeholder="Contoh: Beli kain cotton batch 1" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Nominal (Rp)</label>
-                                    <input type="number" id="tx-amount" placeholder="Contoh: 1500000" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Upload Bukti / Rekening Koran</label>
-                                    <input type="file" id="tx-file" accept=".pdf,image/*" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
-                                </div>
-                                <button type="submit" id="btn-submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-lg text-sm transition shadow-sm">
-                                    Simpan Transaksi
-                                </button>
-                            </form>
-                        </div>
-
-                        <!-- Card Tambah Kategori Baru -->
-                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                            <h2 class="text-base font-bold text-slate-800 mb-3 flex items-center">
-                                <i class="fa-solid fa-tags text-indigo-600 mr-2"></i> Tambah Kategori Baru
-                            </h2>
-                            <form id="category-form" class="space-y-3">
-                                <div>
-                                    <input type="text" id="new-cat-name" placeholder="Nama Kategori (Cth: Listrik, Gaji)" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                </div>
-                                <button type="submit" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-medium py-2 rounded-lg text-xs transition shadow-sm">
-                                    Simpan Kategori Baru
-                                </button>
-                            </form>
-                        </div>
+                    <!-- Form Card -->
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm lg:col-span-1 no-print">
+                        <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center">
+                            <i class="fa-solid fa-circle-plus text-indigo-600 mr-2"></i> Tambah Transaksi & Berkas
+                        </h2>
+                        <form id="transaction-form" class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Tanggal</label>
+                                <input type="date" id="tx-date" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Jenis Transaksi</label>
+                                <select id="tx-type" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    <option value="Pemasukan">Pemasukan (Cash In)</option>
+                                    <option value="Pengeluaran">Pengeluaran (Cash Out)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Kategori</label>
+                                <select id="tx-category" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    <option value="Penjualan POS">Penjualan POS</option>
+                                    <option value="Bahan Baku Kain">Bahan Baku Kain (Cotton)</option>
+                                    <option value="Biaya Produksi / Konveksi">Biaya Produksi / Konveksi</option>
+                                    <option value="Operasional & Lainnya">Operasional & Lainnya</option>
+                                    <option value="ADD_NEW" class="font-bold text-indigo-600">+ Tambah Kategori Baru...</option>
+                                </select>
+                            </div>
+                            <!-- Input Kategori Baru (Hidden by default) -->
+                            <div id="custom-category-box" class="hidden">
+                                <label class="block text-xs font-semibold text-indigo-600 uppercase mb-1">Nama Kategori Baru</label>
+                                <input type="text" id="tx-custom-category" placeholder="Contoh: Perawatan Mesin / Transport" class="w-full px-3 py-2 border border-indigo-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-indigo-50/30">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Keterangan / Deskripsi</label>
+                                <input type="text" id="tx-desc" placeholder="Contoh: Beli kain cotton batch 1" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Nominal (Rp)</label>
+                                <input type="number" id="tx-amount" placeholder="Contoh: 1500000" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Upload Rekening Koran / Bukti Bayar</label>
+                                <input type="file" id="tx-file" accept=".pdf,image/*" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                            </div>
+                            <button type="submit" id="btn-submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-lg text-sm transition shadow-sm">
+                                Simpan Transaksi
+                            </button>
+                        </form>
                     </div>
 
-                    <!-- Right Column: Table List & Report Filter -->
+                    <!-- Table List & Report Filter -->
                     <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm lg:col-span-2 flex flex-col space-y-4">
                         
                         <!-- Filter & Action Buttons -->
@@ -199,6 +191,7 @@
         import { getDatabase, ref, push, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
         import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
+        // Konfigurasi Firebase (Sesuaikan dengan config project Anda)
         const firebaseConfig = {
             apiKey: "YOUR_API_KEY",
             authDomain: "YOUR_AUTH_DOMAIN",
@@ -215,52 +208,23 @@
 
         document.getElementById('tx-date').valueAsDate = new Date();
 
-        // Load & Manage Kategori dari Firebase
+        // Handle Custom Category Dropdown Logic
         const categorySelect = document.getElementById('tx-category');
-        const categoryForm = document.getElementById('category-form');
+        const customCategoryBox = document.getElementById('custom-category-box');
+        const customCategoryInput = document.getElementById('tx-custom-category');
 
-        const catRef = ref(db, 'gba_finance/categories');
-        onValue(catRef, (snapshot) => {
-            const data = snapshot.val();
-            categorySelect.innerHTML = '';
-            
-            // Default kategori jika belum ada di DB
-            let categories = ["Penjualan POS", "Bahan Baku Kain", "Biaya Produksi / Konveksi", "Operasional & Lainnya"];
-            
-            if (data) {
-                const customCats = Object.values(data);
-                categories = [...new Set([...categories, ...customCats])];
-            }
-
-            categories.forEach(cat => {
-                const opt = document.createElement('option');
-                opt.value = cat;
-                opt.textContent = cat;
-                categorySelect.appendChild(opt);
-            });
-        });
-
-        // Tambah Kategori Baru
-        categoryForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const newCatInput = document.getElementById('new-cat-name');
-            const catName = newCatInput.value.trim();
-
-            if (!catName) return;
-
-            try {
-                const catsRef = ref(db, 'gba_finance/categories');
-                const newCatRef = push(catsRef);
-                await set(newCatRef, catName);
-                newCatInput.value = '';
-                alert(`Kategori "${catName}" berhasil ditambahkan!`);
-            } catch (error) {
-                console.error("Gagal tambah kategori:", error);
-                alert('Gagal menambahkan kategori.');
+        categorySelect.addEventListener('change', (e) => {
+            if (e.target.value === 'ADD_NEW') {
+                customCategoryBox.classList.remove('hidden');
+                customCategoryInput.required = true;
+                customCategoryInput.focus();
+            } else {
+                customCategoryBox.classList.add('hidden');
+                customCategoryInput.required = false;
+                customCategoryInput.value = '';
             }
         });
 
-        // Handle Form Submit Transaksi
         const form = document.getElementById('transaction-form');
         const submitBtn = document.getElementById('btn-submit');
 
@@ -271,7 +235,12 @@
 
             const date = document.getElementById('tx-date').value;
             const type = document.getElementById('tx-type').value;
-            const category = document.getElementById('tx-category').value;
+            
+            let category = categorySelect.value;
+            if (category === 'ADD_NEW') {
+                category = customCategoryInput.value.trim();
+            }
+
             const desc = document.getElementById('tx-desc').value;
             const amount = parseFloat(document.getElementById('tx-amount').value);
             const fileInput = document.getElementById('tx-file').files[0];
@@ -299,6 +268,7 @@
 
                 form.reset();
                 document.getElementById('tx-date').valueAsDate = new Date();
+                customCategoryBox.classList.add('hidden');
                 alert('Transaksi dan berkas berhasil disimpan!');
             } catch (error) {
                 console.error("Gagal menyimpan:", error);
@@ -351,7 +321,7 @@
                 } else if (period === 'monthly') {
                     return txDate.getMonth() === today.getMonth() && txDate.getFullYear() === today.getFullYear();
                 }
-                return true;
+                return true; // 'all'
             });
 
             renderTable(filtered);
@@ -390,46 +360,4 @@
                             <span class="text-xs text-slate-400">${tx.category}</span>
                         </td>
                         <td class="p-3">
-                            <span class="px-2 py-1 rounded-full text-xs font-medium ${badgeColor}">${tx.type}</span>
-                        </td>
-                        <td class="p-3 text-right font-semibold ${tx.type === 'Pemasukan' ? 'text-emerald-600' : 'text-slate-800'}">
-                            ${tx.type === 'Pemasukan' ? '+' : '-'} Rp ${Number(tx.amount).toLocaleString('id-ID')}
-                        </td>
-                        <td class="p-3 text-center no-print">
-                            ${fileLinkHtml}
-                        </td>
-                    </tr>
-                `;
-                txTableBody.innerHTML += row;
-            });
-
-            const net = totalIncome - totalExpense;
-            totalIncomeEl.textContent = `Rp ${totalIncome.toLocaleString('id-ID')}`;
-            totalExpenseEl.textContent = `Rp ${totalExpense.toLocaleString('id-ID')}`;
-            netBalanceEl.textContent = `Rp ${net.toLocaleString('id-ID')}`;
-        }
-
-        // Fitur Export CSV
-        document.getElementById('btn-export').addEventListener('click', () => {
-            if (allTransactions.length === 0) {
-                alert('Tidak ada data untuk di-download.');
-                return;
-            }
-
-            let csvContent = "data:text/csv;charset=utf-8,Tanggal,Jenis,Kategori,Keterangan,Nominal,Link Berkas\r\n";
-            allTransactions.forEach(tx => {
-                let row = `"${tx.date}","${tx.type}","${tx.category}","${tx.desc}","${tx.amount}","${tx.fileUrl || ''}"`;
-                csvContent += row + "\r\n";
-            });
-
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `Laporan_Keuangan_GBA_${new Date().toISOString().slice(0,10)}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        });
-    </script>
-</body>
-</html>
+                            
