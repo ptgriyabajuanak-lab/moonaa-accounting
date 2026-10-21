@@ -177,7 +177,7 @@
                             </form>
                         </div>
 
-                        <!-- Laporan Arus Kas Card dengan Paginasi & Per-Page Selector -->
+                        <!-- Laporan Arus Kas Card dengan Nama Penyetor Jelas -->
                         <div class="bg-white p-4 md:p-6 rounded-2xl border border-slate-200/80 shadow-sm lg:col-span-2 flex flex-col space-y-4">
                             <div class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 pb-3 border-b border-slate-100 no-print">
                                 <div class="flex items-center space-x-2 w-full sm:w-auto">
@@ -221,7 +221,7 @@
                                     <thead>
                                         <tr class="border-b border-slate-200 text-[11px] uppercase tracking-wider text-slate-500 bg-slate-50/70">
                                             <th class="p-3 rounded-l-xl">Tanggal</th>
-                                            <th class="p-3">Kategori & Keterangan</th>
+                                            <th class="p-3">Penyetor / Keterangan</th>
                                             <th class="p-3">Jenis</th>
                                             <th class="p-3 text-right">Nominal</th>
                                             <th class="p-3 text-center no-print">Berkas</th>
@@ -245,7 +245,7 @@
                     </div>
                 </div>
 
-                <!-- TAB 2: DAFTAR BON / INVOICE DENGAN PILIHAN PER-PAGE -->
+                <!-- TAB 2: DAFTAR BON / INVOICE -->
                 <div id="tab-invoices" class="hidden space-y-4">
                     <div class="bg-white p-4 md:p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
                         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100">
@@ -270,12 +270,12 @@
                             </div>
                         </div>
 
-                        <!-- Daftar List Invoice (Card Style) -->
+                        <!-- Daftar List Invoice -->
                         <div id="invoice-list-container" class="space-y-3">
                             <p class="text-center text-slate-400 py-8">Memuat daftar bon dari POS...</p>
                         </div>
 
-                        <!-- Pagination Controls Invoice -->
+                        <!-- Pagination Invoice -->
                         <div class="flex flex-col sm:flex-row justify-between items-center pt-4 border-t border-slate-100 gap-3">
                             <span id="invoice-pagination-info" class="text-xs text-slate-500 font-medium">Menampilkan 0 dari 0 data</span>
                             <div class="flex items-center space-x-1.5" id="invoice-pagination-buttons"></div>
@@ -341,7 +341,7 @@
         </div>
     </div>
 
-    <!-- Firebase SDK v10 Modular & Dual Pagination Logic -->
+    <!-- Firebase SDK v10 Modular & Nama Penyetor Terbuka -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, push, set, update, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
@@ -364,7 +364,6 @@
 
         document.getElementById('tx-date').valueAsDate = new Date();
 
-        // Navigasi Tab
         window.switchTab = function(tabName) {
             const dashboardTab = document.getElementById('tab-dashboard');
             const invoicesTab = document.getElementById('tab-invoices');
@@ -529,11 +528,9 @@
         let posTransactions = [];
         let rawPosTransactions = [];
 
-        // State Pagination Arus Kas
         let cashflowPage = 1;
         const limitCashflowSelect = document.getElementById('limit-cashflow');
 
-        // State Pagination Invoice
         let invoicePage = 1;
         const limitInvoiceSelect = document.getElementById('limit-invoice');
 
@@ -543,7 +540,6 @@
         const netBalanceEl = document.getElementById('net-balance');
         const filterPeriodSelect = document.getElementById('filter-period');
 
-        // Ambil Data Pengeluaran
         onValue(ref(db, 'gba_accounting_expenses'), (snapshot) => {
             const data = snapshot.val();
             expenseTransactions = [];
@@ -551,7 +547,6 @@
             mergeAndRender();
         });
 
-        // Ambil Data POS
         onValue(ref(db, 'transactions'), (snapshot) => {
             const data = snapshot.val();
             posTransactions = [];
@@ -563,12 +558,14 @@
                     if (!totalNominal && val.items && Array.isArray(val.items)) {
                         totalNominal = val.items.reduce((sum, item) => sum + (Number(item.price || item.harga || 0) * Number(item.qty || 1)), 0);
                     }
+                    const customerName = val.customer || val.pelanggan || 'Pelanggan Umum';
+                    const invNumber = val.idtrx || val.invoiceNo || ('INV-' + val.id.slice(-6).toUpperCase());
                     return {
                         id: 'pos_' + val.id,
                         date: val.date || val.tanggal || new Date().toISOString().slice(0, 10),
                         type: 'Pemasukan',
-                        category: 'Penjualan POS',
-                        desc: val.customer || val.pelanggan ? `Penjualan ke ${val.customer || val.pelanggan}` : (val.desc || 'Transaksi Penjualan POS'),
+                        category: 'Penjualan POS (' + invNumber + ')',
+                        desc: customerName,
                         amount: totalNominal,
                         fileUrl: '',
                         createdAt: val.createdAt || val.timestamp || Date.now(),
@@ -608,7 +605,6 @@
                 return true;
             });
 
-            // Hitung Total Summary dari semua data yang terfilter (sebelum dipotong pagination)
             let totalIncome = 0;
             let totalExpense = 0;
             filtered.forEach(tx => {
@@ -624,7 +620,6 @@
             renderCashflowTableWithPagination(filtered);
         }
 
-        // Render Arus Kas dengan Pagination & Per-Page Selector
         function renderCashflowTableWithPagination(transactions) {
             txTableBody.innerHTML = '';
             const itemsPerPage = parseInt(limitCashflowSelect.value);
@@ -702,7 +697,6 @@
             applyFilter();
         }
 
-        // Logic Filter & Pagination untuk Daftar Bon / Invoice dengan pilihan Per-Page
         function getFilteredInvoices() {
             const keyword = document.getElementById('search-invoice').value.toLowerCase();
             return rawPosTransactions.filter(inv => {
@@ -809,7 +803,6 @@
             `;
         }
 
-        // Modal Detail Invoice
         window.openInvoiceDetail = function(inv) {
             document.getElementById('modal-customer').textContent = inv.customer || inv.pelanggan || 'Pelanggan Umum';
             document.getElementById('modal-date').textContent = inv.date || inv.tanggal || '-';
@@ -851,7 +844,6 @@
             document.getElementById('invoice-modal').classList.add('hidden');
         }
 
-        // Export CSV
         document.getElementById('btn-export').addEventListener('click', () => {
             if (allTransactions.length === 0) {
                 alert('Tidak ada data untuk di-download.');
