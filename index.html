@@ -250,7 +250,7 @@
                             <p class="text-center text-slate-400 py-8">Memuat daftar bon dari POS...</p>
                         </div>
 
-                        <!-- Pagination Controls -->
+                        <!-- Pagination Controls (Tombol Halaman) -->
                         <div id="pagination-container" class="flex flex-col sm:flex-row justify-between items-center pt-4 border-t border-slate-100 gap-3">
                             <span id="pagination-info" class="text-xs text-slate-500 font-medium">Menampilkan 0 dari 0 data</span>
                             <div class="flex items-center space-x-1.5" id="pagination-buttons">
@@ -481,9 +481,9 @@
         let posTransactions = [];
         let rawPosTransactions = [];
 
-        // Variabel Pagination Invoice
+        // Variabel Pagination Invoice (Dibatasi 6 bon per halaman agar pas di layar tanpa scroll panjang)
         let currentPage = 1;
-        const itemsPerPage = 8; // Jumlah bon per halaman
+        const itemsPerPage = 6;
 
         const txTableBody = document.getElementById('transaction-table-body');
         const totalIncomeEl = document.getElementById('total-income');
@@ -629,7 +629,6 @@
         window.changePage = function(page) {
             currentPage = page;
             renderInvoicesWithPagination();
-            document.getElementById('tab-invoices').scrollIntoView({ behavior: 'smooth' });
         }
 
         function renderInvoicesWithPagination() {
@@ -666,7 +665,7 @@
                 }
 
                 container.innerHTML += `
-                    <div onclick='openInvoiceDetail(${JSON.stringify(inv)})' class="bg-white p-4 rounded-2xl border border-slate-200/80 hover:border-indigo-400 hover:shadow-md transition cursor-pointer flex items-center justify-between">
+                    <div onclick='openInvoiceDetail(${JSON.stringify(inv)})' class="bg-white p-4 rounded-2xl border border-slate-200/85 hover:border-indigo-400 hover:shadow-md transition cursor-pointer flex items-center justify-between">
                         <div class="flex items-center space-x-3.5">
                             <div class="w-11 h-11 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-base shrink-0">
                                 <i class="fa-solid fa-file-lines"></i>
