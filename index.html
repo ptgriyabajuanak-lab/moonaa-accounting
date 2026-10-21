@@ -177,7 +177,7 @@
                             </form>
                         </div>
 
-                        <!-- Laporan Arus Kas Card dengan Nama Penyetor Jelas -->
+                        <!-- Laporan Arus Kas Card -->
                         <div class="bg-white p-4 md:p-6 rounded-2xl border border-slate-200/80 shadow-sm lg:col-span-2 flex flex-col space-y-4">
                             <div class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 pb-3 border-b border-slate-100 no-print">
                                 <div class="flex items-center space-x-2 w-full sm:w-auto">
@@ -341,7 +341,7 @@
         </div>
     </div>
 
-    <!-- Firebase SDK v10 Modular & Nama Penyetor Terbuka -->
+    <!-- Firebase SDK v10 Modular & Pemetaan Nama Pelanggan POS Akurat -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, push, set, update, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
@@ -558,8 +558,11 @@
                     if (!totalNominal && val.items && Array.isArray(val.items)) {
                         totalNominal = val.items.reduce((sum, item) => sum + (Number(item.price || item.harga || 0) * Number(item.qty || 1)), 0);
                     }
-                    const customerName = val.customer || val.pelanggan || 'Pelanggan Umum';
+                    
+                    // Mendeteksi nama pelanggan dari berbagai kemungkinan nama kolom di database POS
+                    const customerName = val.customer || val.pelanggan || val.buyer || val.nama || val.name || 'Pelanggan Umum';
                     const invNumber = val.idtrx || val.invoiceNo || ('INV-' + val.id.slice(-6).toUpperCase());
+
                     return {
                         id: 'pos_' + val.id,
                         date: val.date || val.tanggal || new Date().toISOString().slice(0, 10),
@@ -700,7 +703,7 @@
         function getFilteredInvoices() {
             const keyword = document.getElementById('search-invoice').value.toLowerCase();
             return rawPosTransactions.filter(inv => {
-                const cust = (inv.customer || inv.pelanggan || '').toLowerCase();
+                const cust = (inv.customer || inv.pelanggan || inv.buyer || inv.nama || inv.name || '').toLowerCase();
                 const num = (inv.idtrx || inv.invoiceNo || '').toLowerCase();
                 return cust.includes(keyword) || num.includes(keyword);
             });
@@ -752,7 +755,7 @@
             const paginatedItems = filtered.slice(startIndex, endIndex);
 
             paginatedItems.forEach(inv => {
-                const customerName = inv.customer || inv.pelanggan || 'Pelanggan Umum';
+                const customerName = inv.customer || inv.pelanggan || inv.buyer || inv.nama || inv.name || 'Pelanggan Umum';
                 const invNumber = inv.idtrx || inv.invoiceNo || ('INV-' + inv.id.slice(-6).toUpperCase());
                 let totalAmount = Number(inv.total || inv.amount || inv.omset || 0);
                 if (!totalAmount && inv.items && Array.isArray(inv.items)) {
@@ -804,7 +807,8 @@
         }
 
         window.openInvoiceDetail = function(inv) {
-            document.getElementById('modal-customer').textContent = inv.customer || inv.pelanggan || 'Pelanggan Umum';
+            const customerName = inv.customer || inv.pelanggan || inv.buyer || inv.nama || inv.name || 'Pelanggan Umum';
+            document.getElementById('modal-customer').textContent = customerName;
             document.getElementById('modal-date').textContent = inv.date || inv.tanggal || '-';
             document.getElementById('modal-invoice-title').textContent = inv.idtrx || inv.invoiceNo || ('Invoice #' + inv.id.slice(-6).toUpperCase());
 
