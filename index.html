@@ -221,7 +221,7 @@
                                     <thead>
                                         <tr class="border-b border-slate-200 text-[11px] uppercase tracking-wider text-slate-500 bg-slate-50/70">
                                             <th class="p-3 rounded-l-xl">Tanggal</th>
-                                            <th class="p-3">Penyetor / Keterangan</th>
+                                            <th class="p-3">Konsumen / Keterangan</th>
                                             <th class="p-3">Jenis</th>
                                             <th class="p-3 text-right">Nominal</th>
                                             <th class="p-3 text-center no-print">Berkas</th>
@@ -265,7 +265,7 @@
                                     </select>
                                 </div>
                                 <div class="w-full sm:w-64">
-                                    <input type="text" id="search-invoice" placeholder="Cari pelanggan / no bon..." class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs md:text-sm bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    <input type="text" id="search-invoice" placeholder="Cari konsumen / no bon..." class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs md:text-sm bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
                                 </div>
                             </div>
                         </div>
@@ -302,7 +302,7 @@
             <div class="p-6 overflow-y-auto space-y-4 flex-1 text-sm">
                 <div class="grid grid-cols-2 gap-4 bg-slate-50 p-3 rounded-xl border border-slate-200">
                     <div>
-                        <span class="text-[11px] text-slate-400 block font-bold uppercase">Pelanggan</span>
+                        <span class="text-[11px] text-slate-400 block font-bold uppercase">Konsumen</span>
                         <span id="modal-customer" class="font-bold text-slate-800">-</span>
                     </div>
                     <div>
@@ -341,7 +341,7 @@
         </div>
     </div>
 
-    <!-- Firebase SDK v10 Modular & Pemetaan Nama Pelanggan POS Akurat -->
+    <!-- Firebase SDK v10 Modular & Pemetaan Konsumen Akurat -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, push, set, update, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
@@ -559,8 +559,8 @@
                         totalNominal = val.items.reduce((sum, item) => sum + (Number(item.price || item.harga || 0) * Number(item.qty || 1)), 0);
                     }
                     
-                    // Mendeteksi nama pelanggan dari berbagai kemungkinan nama kolom di database POS
-                    const customerName = val.customer || val.pelanggan || val.buyer || val.nama || val.name || 'Pelanggan Umum';
+                    // Mengambil nama dari kolom KONSUMEN yang ada di GBA POS
+                    const customerName = val.konsumen || val.customer || val.pelanggan || val.buyer || val.nama || val.name || 'Pelanggan Umum';
                     const invNumber = val.idtrx || val.invoiceNo || ('INV-' + val.id.slice(-6).toUpperCase());
 
                     return {
@@ -703,7 +703,7 @@
         function getFilteredInvoices() {
             const keyword = document.getElementById('search-invoice').value.toLowerCase();
             return rawPosTransactions.filter(inv => {
-                const cust = (inv.customer || inv.pelanggan || inv.buyer || inv.nama || inv.name || '').toLowerCase();
+                const cust = (inv.konsumen || inv.customer || inv.pelanggan || inv.buyer || inv.nama || inv.name || '').toLowerCase();
                 const num = (inv.idtrx || inv.invoiceNo || '').toLowerCase();
                 return cust.includes(keyword) || num.includes(keyword);
             });
@@ -755,7 +755,7 @@
             const paginatedItems = filtered.slice(startIndex, endIndex);
 
             paginatedItems.forEach(inv => {
-                const customerName = inv.customer || inv.pelanggan || inv.buyer || inv.nama || inv.name || 'Pelanggan Umum';
+                const customerName = inv.konsumen || inv.customer || inv.pelanggan || inv.buyer || inv.nama || inv.name || 'Pelanggan Umum';
                 const invNumber = inv.idtrx || inv.invoiceNo || ('INV-' + inv.id.slice(-6).toUpperCase());
                 let totalAmount = Number(inv.total || inv.amount || inv.omset || 0);
                 if (!totalAmount && inv.items && Array.isArray(inv.items)) {
@@ -807,7 +807,7 @@
         }
 
         window.openInvoiceDetail = function(inv) {
-            const customerName = inv.customer || inv.pelanggan || inv.buyer || inv.nama || inv.name || 'Pelanggan Umum';
+            const customerName = inv.konsumen || inv.customer || inv.pelanggan || inv.buyer || inv.nama || inv.name || 'Pelanggan Umum';
             document.getElementById('modal-customer').textContent = customerName;
             document.getElementById('modal-date').textContent = inv.date || inv.tanggal || '-';
             document.getElementById('modal-invoice-title').textContent = inv.idtrx || inv.invoiceNo || ('Invoice #' + inv.id.slice(-6).toUpperCase());
