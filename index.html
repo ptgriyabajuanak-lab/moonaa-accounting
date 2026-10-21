@@ -341,7 +341,7 @@
         </div>
     </div>
 
-    <!-- Firebase SDK v10 Modular & Relasi Master Customer Akurat -->
+    <!-- Firebase SDK v10 Modular & Pemetaan Konsumen Ultimate Fix -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, push, set, update, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
@@ -541,7 +541,7 @@
         const netBalanceEl = document.getElementById('net-balance');
         const filterPeriodSelect = document.getElementById('filter-period');
 
-        // Ambil Data Master Customers untuk Pencocokan Nama Konsumen
+        // Ambil Data Master Customers Terlebih Dahulu
         onValue(ref(db, 'customers'), (snapshot) => {
             customersDataObj = snapshot.val() || {};
             if (rawPosTransactions.length > 0) processPosTransactions(rawPosTransactions);
@@ -573,7 +573,9 @@
                     totalNominal = val.items.reduce((sum, item) => sum + (Number(item.price || item.harga || 0) * Number(item.qty || 1)), 0);
                 }
                 
-                // Cari nama konsumen: cek dari custKey ke master customers, atau properti langsung
+                // PENCARIAN NAMA KONSUMEN PALING AKURAT
+                // Prioritas 1: Cek relasi custKey ke tabel master customers
+                // Prioritas 2: Cek properti langsung dari record transaksi POS
                 let customerName = 'Pelanggan Umum';
                 if (val.custKey && customersDataObj[val.custKey] && customersDataObj[val.custKey].name) {
                     customerName = customersDataObj[val.custKey].name;
@@ -589,9 +591,7 @@
                     customerName = val.pelanggan;
                 }
 
-                // Simpan nama konsumen yang sudah ketemu ke dalam objek val agar modal detail juga ikut akurat
                 val.resolvedCustomerName = customerName;
-
                 const invNumber = val.idtrx || val.id || ('INV-' + String(val.id || '').slice(-6).toUpperCase());
 
                 return {
