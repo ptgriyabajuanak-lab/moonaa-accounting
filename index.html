@@ -124,7 +124,7 @@
                 <!-- Form & Table Grid -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
                     
-                    <!-- Input Form Card (Untuk Biaya / Pengeluaran Lainnya) -->
+                    <!-- Input Form Card -->
                     <div class="bg-white p-4 md:p-6 rounded-2xl border border-slate-200/80 shadow-sm lg:col-span-1 no-print">
                         <div class="flex justify-between items-center mb-3">
                             <h2 id="form-title" class="text-base font-bold text-slate-800 flex items-center">
@@ -155,7 +155,6 @@
                                     <option value="ADD_NEW" class="font-bold text-indigo-600 bg-indigo-50">+ Tambah Kategori Baru...</option>
                                 </select>
                             </div>
-                            <!-- Input Kategori Baru -->
                             <div id="custom-category-box" class="hidden">
                                 <label class="block text-[11px] font-bold text-indigo-600 uppercase mb-1">Nama Kategori Baru</label>
                                 <input type="text" id="tx-custom-category" placeholder="Contoh: Perawatan Mesin / Transport" class="w-full px-3 py-2 border border-indigo-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-indigo-50/50">
@@ -259,7 +258,6 @@
 
         document.getElementById('tx-date').valueAsDate = new Date();
 
-        // Inisialisasi Grafik Chart.js
         let financeChart;
         function initChart(income, expense, net) {
             const ctx = document.getElementById('financeChart').getContext('2d');
@@ -457,7 +455,7 @@
         const netBalanceEl = document.getElementById('net-balance');
         const filterPeriodSelect = document.getElementById('filter-period');
 
-        // 1. Ambil Data Manual Keuangan dari gba_finance/transactions
+        // 1. Ambil Data Keuangan Manual
         const financeRef = ref(db, 'gba_finance/transactions');
         onValue(financeRef, (snapshot) => {
             const data = snapshot.val();
@@ -468,23 +466,30 @@
             mergeAndRender();
         });
 
-        // 2. Ambil Data Penjualan Otomatis dari gba_pos/transactions (atau jalur POS)
-        const posRef = ref(db, 'gba_pos/transactions');
+        // 2. Ambil Data Penjualan POS (Menyesuaikan dengan struktur data POS standar)
+        const posRef = ref(db, 'transactions');
         onValue(posRef, (snapshot) => {
             const data = snapshot.val();
             posTransactions = [];
             if (data) {
-                posTransactions = Object.entries(data).map(([id, val]) => ({
-                    id: 'pos_' + id,
-                    date: val.date || val.tanggal || new Date().toISOString().slice(0, 10),
-                    type: 'Pemasukan',
-                    category: 'Penjualan POS',
-                    desc: val.desc || val.keterangan || 'Penjualan Kasir POS',
-                    amount: Number(val.amount || val.total || 0),
-                    fileUrl: '',
-                    createdAt: val.createdAt || Date.now(),
-                    source: 'pos'
-                }));
+                posTransactions = Object.entries(data).map(([id, val]) => {
+                    let totalNominal = Number(val.total || val.amount || val.omset || 0);
+                    // Jika tersimpan sebagai list item, hitung totalnya
+                    if (!totalNominal && val.items && Array.isArray(val.items)) {
+                        totalNominal = val.items.reduce((sum, item) => sum + (Number(item.price || item.harga || 0) * Number(item.qty || 1)), 0);
+                    }
+                    return {
+                        id: 'pos_' + id,
+                        date: val.date || val.tanggal || new Date().toISOString().slice(0, 10),
+                        type: 'Pemasukan',
+                        category: 'Penjualan POS',
+                        desc: val.customer || val.pelanggan ? `Penjualan ke ${val.customer || val.pelanggan}` : (val.desc || 'Transaksi POS Kasir'),
+                        amount: totalNominal,
+                        fileUrl: '',
+                        createdAt: val.createdAt || val.timestamp || Date.now(),
+                        source: 'pos'
+                    };
+                });
             }
             mergeAndRender();
         });
@@ -584,7 +589,6 @@
             initChart(totalIncome, totalExpense, net);
         }
 
-        // Fitur Export CSV (Download)
         document.getElementById('btn-export').addEventListener('click', () => {
             if (allTransactions.length === 0) {
                 alert('Tidak ada data untuk di-download.');
