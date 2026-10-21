@@ -230,7 +230,7 @@
                     </div>
                 </div>
 
-                <!-- TAB 2: DAFTAR BON / INVOICE (ALA INVOICE FLY) -->
+                <!-- TAB 2: DAFTAR BON / INVOICE DENGAN PAGINATION -->
                 <div id="tab-invoices" class="hidden space-y-4">
                     <div class="bg-white p-4 md:p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
                         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100">
@@ -248,6 +248,14 @@
                         <!-- Daftar List Invoice (Card Style) -->
                         <div id="invoice-list-container" class="space-y-3">
                             <p class="text-center text-slate-400 py-8">Memuat daftar bon dari POS...</p>
+                        </div>
+
+                        <!-- Pagination Controls -->
+                        <div id="pagination-container" class="flex flex-col sm:flex-row justify-between items-center pt-4 border-t border-slate-100 gap-3">
+                            <span id="pagination-info" class="text-xs text-slate-500 font-medium">Menampilkan 0 dari 0 data</span>
+                            <div class="flex items-center space-x-1.5" id="pagination-buttons">
+                                <!-- Tombol halaman di-generate via JS -->
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -312,7 +320,7 @@
         </div>
     </div>
 
-    <!-- Firebase SDK v10 Modular & Tab Invoices Logic -->
+    <!-- Firebase SDK v10 Modular & Pagination Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, push, set, update, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
@@ -355,7 +363,7 @@
                 navInvoices.className = "w-full flex items-center space-x-3 p-3 rounded-xl bg-indigo-600 text-white font-medium shadow-md shadow-indigo-600/20 transition";
                 navDashboard.className = "w-full flex items-center space-x-3 p-3 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white font-medium transition";
                 headerTitle.textContent = "Daftar Bon & Invoice Pelanggan";
-                renderInvoices(rawPosTransactions);
+                updateFilteredInvoices();
             }
         }
 
@@ -468,40 +476,14 @@
             }
         });
 
-        window.editTransaction = function(id) {
-            const tx = allTransactions.find(t => t.id === id);
-            if (!tx || tx.source === 'pos') {
-                alert('Transaksi dari POS otomatis tidak dapat diedit dari sini.');
-                return;
-            }
-            editTxIdInput.value = tx.id;
-            document.getElementById('tx-date').value = tx.date;
-            categorySelect.value = tx.category;
-            document.getElementById('tx-desc').value = tx.desc;
-            document.getElementById('tx-amount').value = tx.amount;
-            formTitle.innerHTML = `<i class="fa-solid fa-pen-to-square text-amber-600 mr-2"></i> Edit Pengeluaran`;
-            submitBtn.textContent = 'Perbarui Pengeluaran';
-            btnCancelEdit.classList.remove('hidden');
-            form.scrollIntoView({ behavior: 'smooth' });
-        }
-
-        window.deleteTransaction = async function(id) {
-            const tx = allTransactions.find(t => t.id === id);
-            if (tx && tx.source === 'pos') return;
-            if (confirm('Apakah Anda yakin ingin menghapus pengeluaran ini?')) {
-                try {
-                    await remove(ref(db, `gba_accounting_expenses/${id}`));
-                    alert('Pengeluaran berhasil dihapus.');
-                } catch (error) {
-                    alert('Gagal menghapus data.');
-                }
-            }
-        }
-
         let allTransactions = [];
         let expenseTransactions = [];
         let posTransactions = [];
         let rawPosTransactions = [];
+
+        // Variabel Pagination Invoice
+        let currentPage = 1;
+        const itemsPerPage = 8; // Jumlah bon per halaman
 
         const txTableBody = document.getElementById('transaction-table-body');
         const totalIncomeEl = document.getElementById('total-income');
@@ -550,7 +532,7 @@
             allTransactions = [...expenseTransactions, ...posTransactions];
             allTransactions.sort((a, b) => b.createdAt - a.createdAt);
             applyFilter();
-            renderInvoices(rawPosTransactions);
+            updateFilteredInvoices();
         }
 
         filterPeriodSelect.addEventListener('change', applyFilter);
@@ -625,19 +607,57 @@
             initChart(totalIncome, totalExpense, net);
         }
 
-        // Render Tab Daftar Bon / Invoice
-        function renderInvoices(invoices) {
-            const container = document.getElementById('invoice-list-container');
-            container.innerHTML = '';
+        // Logic Filter & Pagination untuk Daftar Bon / Invoice
+        function getFilteredInvoices() {
+            const keyword = document.getElementById('search-invoice').value.toLowerCase();
+            return rawPosTransactions.filter(inv => {
+                const cust = (inv.customer || inv.pelanggan || '').toLowerCase();
+                const num = (inv.idtrx || inv.invoiceNo || '').toLowerCase();
+                return cust.includes(keyword) || num.includes(keyword);
+            });
+        }
 
-            if (!invoices || invoices.length === 0) {
+        window.updateFilteredInvoices = function() {
+            currentPage = 1;
+            renderInvoicesWithPagination();
+        }
+
+        document.getElementById('search-invoice').addEventListener('input', () => {
+            updateFilteredInvoices();
+        });
+
+        window.changePage = function(page) {
+            currentPage = page;
+            renderInvoicesWithPagination();
+            document.getElementById('tab-invoices').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function renderInvoicesWithPagination() {
+            const container = document.getElementById('invoice-list-container');
+            const paginationInfo = document.getElementById('pagination-info');
+            const paginationButtons = document.getElementById('pagination-buttons');
+            
+            container.innerHTML = '';
+            const filtered = getFilteredInvoices();
+            filtered.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+            const totalItems = filtered.length;
+            if (totalItems === 0) {
                 container.innerHTML = `<p class="text-center text-slate-400 py-8">Belum ada bon/invoice tercatat.</p>`;
+                paginationInfo.textContent = `Menampilkan 0 dari 0 data`;
+                paginationButtons.innerHTML = '';
                 return;
             }
 
-            invoices.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+            if (currentPage > totalPages) currentPage = totalPages;
+            if (currentPage < 1) currentPage = 1;
 
-            invoices.forEach(inv => {
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const paginatedItems = filtered.slice(startIndex, endIndex);
+
+            paginatedItems.forEach(inv => {
                 const customerName = inv.customer || inv.pelanggan || 'Pelanggan Umum';
                 const invNumber = inv.idtrx || inv.invoiceNo || ('INV-' + inv.id.slice(-6).toUpperCase());
                 let totalAmount = Number(inv.total || inv.amount || inv.omset || 0);
@@ -663,6 +683,38 @@
                     </div>
                 `;
             });
+
+            // Info text
+            paginationInfo.textContent = `Menampilkan ${startIndex + 1}-${Math.min(endIndex, totalItems)} dari ${totalItems} data`;
+
+            // Render tombol navigasi halaman (Pagination buttons)
+            paginationButtons.innerHTML = '';
+            
+            // Tombol Previous
+            paginationButtons.innerHTML += `
+                <button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled class="px-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-300 bg-slate-50 cursor-not-allowed"' : 'class="px-3 py-1.5 rounded-lg border border-slate-300 text-xs text-slate-700 hover:bg-slate-100 font-medium"'}>
+                    <i class="fa-solid fa-chevron-left mr-1"></i> Prev
+                </button>
+            `;
+
+            // Nomor Halaman
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+                    const activeClass = i === currentPage 
+                        ? 'px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-xs font-bold shadow-sm shadow-indigo-600/30' 
+                        : 'px-3 py-1.5 rounded-lg border border-slate-300 text-xs text-slate-700 hover:bg-slate-100 font-medium';
+                    paginationButtons.innerHTML += `<button onclick="changePage(${i})" class="${activeClass}">${i}</button>`;
+                } else if (i === currentPage - 2 || i === currentPage + 2) {
+                    paginationButtons.innerHTML += `<span class="px-2 text-slate-400 text-xs">...</span>`;
+                }
+            }
+
+            // Tombol Next
+            paginationButtons.innerHTML += `
+                <button onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled class="px-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-300 bg-slate-50 cursor-not-allowed"' : 'class="px-3 py-1.5 rounded-lg border border-slate-300 text-xs text-slate-700 hover:bg-slate-100 font-medium"'}>
+                    Next <i class="fa-solid fa-chevron-right ml-1"></i>
+                </button>
+            `;
         }
 
         // Modal Detail Invoice
@@ -706,17 +758,6 @@
         window.closeInvoiceModal = function() {
             document.getElementById('invoice-modal').classList.add('hidden');
         }
-
-        // Search Filter Invoice
-        document.getElementById('search-invoice').addEventListener('input', (e) => {
-            const keyword = e.target.value.toLowerCase();
-            const filtered = rawPosTransactions.filter(inv => {
-                const cust = (inv.customer || inv.pelanggan || '').toLowerCase();
-                const num = (inv.idtrx || inv.invoiceNo || '').toLowerCase();
-                return cust.includes(keyword) || num.includes(keyword);
-            });
-            renderInvoices(filtered);
-        });
 
         // Export CSV
         document.getElementById('btn-export').addEventListener('click', () => {
