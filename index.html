@@ -35,12 +35,12 @@
             </div>
             <div>
                 <h1 class="font-bold text-xs tracking-wide">GBA ACCOUNTING</h1>
-                <p class="text-[10px] text-slate-400">Terhubung Otomatis ke POS</p>
+                <p class="text-[10px] text-slate-400">Sinkronisasi Otomatis POS</p>
             </div>
         </div>
         <div class="flex items-center space-x-1.5 bg-slate-800 px-2.5 py-1 rounded-full border border-slate-700">
             <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span class="text-[10px] text-emerald-300 font-medium">Auto-Sync POS</span>
+            <span class="text-[10px] text-emerald-300 font-medium">Synced POS</span>
         </div>
     </header>
 
@@ -53,7 +53,7 @@
                 </div>
                 <div>
                     <h1 class="font-bold text-white tracking-wide text-base">GBA ACCOUNTING</h1>
-                    <p class="text-xs text-slate-400">Sinkronisasi POS Otomatis</p>
+                    <p class="text-xs text-slate-400">Terhubung ke POS GBA</p>
                 </div>
             </div>
             <nav class="p-4 space-y-2 flex-1">
@@ -71,9 +71,9 @@
         <main class="flex-1 flex flex-col h-full overflow-y-auto">
             <!-- Desktop Top Header -->
             <header class="bg-white border-b border-slate-200 px-6 py-4 hidden md:flex justify-between items-center shadow-sm no-print">
-                <h2 class="text-lg font-bold text-slate-800">Modul Keuangan & Sinkronisasi Penjualan POS</h2>
+                <h2 class="text-lg font-bold text-slate-800">Modul Keuangan & Integrasi POS</h2>
                 <span class="text-xs bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-1.5 rounded-full font-medium flex items-center shadow-sm">
-                    <i class="fa-solid fa-circle text-[8px] mr-1.5 text-emerald-500 animate-pulse"></i> POS & Firebase Connected
+                    <i class="fa-solid fa-circle text-[8px] mr-1.5 text-emerald-500 animate-pulse"></i> Terhubung ke GBA-POS
                 </span>
             </header>
 
@@ -93,7 +93,7 @@
                     </div>
                     <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
                         <div>
-                            <p class="text-xs text-slate-500 font-medium">Total Pengeluaran</p>
+                            <p class="text-xs text-slate-500 font-medium">Total Pengeluaran / Biaya</p>
                             <h3 id="total-expense" class="text-lg md:text-2xl font-bold text-rose-600 mt-0.5">Rp 0</h3>
                         </div>
                         <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-base shrink-0">
@@ -124,11 +124,11 @@
                 <!-- Form & Table Grid -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
                     
-                    <!-- Input Form Card -->
+                    <!-- Input Form Card (Hanya untuk Pengeluaran / Biaya Operasional) -->
                     <div class="bg-white p-4 md:p-6 rounded-2xl border border-slate-200/80 shadow-sm lg:col-span-1 no-print">
                         <div class="flex justify-between items-center mb-3">
                             <h2 id="form-title" class="text-base font-bold text-slate-800 flex items-center">
-                                <i class="fa-solid fa-circle-plus text-indigo-600 mr-2"></i> Tambah Transaksi Manual
+                                <i class="fa-solid fa-circle-plus text-indigo-600 mr-2"></i> Catat Pengeluaran / Biaya
                             </h2>
                             <button id="btn-cancel-edit" onclick="resetForm()" class="hidden text-xs text-rose-600 font-semibold hover:underline">Batal Edit</button>
                         </div>
@@ -139,15 +139,10 @@
                                 <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Tanggal</label>
                                 <input type="date" id="tx-date" required class="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-sm bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
                             </div>
+                            <!-- Jenis Transaksi dikunci ke Pengeluaran karena Pemasukan sudah otomatis dari POS -->
+                            <input type="hidden" id="tx-type" value="Pengeluaran">
                             <div>
-                                <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Jenis Transaksi</label>
-                                <select id="tx-type" class="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-sm bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition font-medium">
-                                    <option value="Pemasukan" class="text-emerald-600 font-semibold">🟢 Pemasukan Manual (Cash In)</option>
-                                    <option value="Pengeluaran" class="text-rose-600 font-semibold">🔴 Pengeluaran / Biaya (Cash Out)</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Kategori</label>
+                                <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Kategori Pengeluaran</label>
                                 <select id="tx-category" class="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-sm bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
                                     <option value="Bahan Baku Kain">Bahan Baku Kain (Cotton)</option>
                                     <option value="Biaya Produksi / Konveksi">Biaya Produksi / Konveksi</option>
@@ -168,11 +163,11 @@
                                 <input type="number" id="tx-amount" placeholder="Contoh: 1500000" required class="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-sm bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition font-semibold">
                             </div>
                             <div>
-                                <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Upload Bukti / Rekening Koran</label>
+                                <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Upload Bukti / Nota</label>
                                 <input type="file" id="tx-file" accept=".pdf,image/*" class="w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
                             </div>
                             <button type="submit" id="btn-submit" class="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] text-white font-semibold py-3 rounded-xl text-sm transition shadow-md shadow-indigo-600/25 mt-2">
-                                Simpan Transaksi Manual
+                                Simpan Pengeluaran
                             </button>
                         </form>
                     </div>
@@ -205,7 +200,7 @@
 
                         <div class="flex justify-between items-center">
                             <h2 class="text-base font-bold text-slate-800 flex items-center">
-                                <i class="fa-solid fa-file-invoice-dollar text-indigo-600 mr-2"></i> Laporan Arus Kas (Gabungan POS & Keuangan)
+                                <i class="fa-solid fa-file-invoice-dollar text-indigo-600 mr-2"></i> Laporan Arus Kas (Otomatis dari POS & Biaya)
                             </h2>
                         </div>
 
@@ -224,7 +219,7 @@
                                 </thead>
                                 <tbody id="transaction-table-body" class="text-sm divide-y divide-slate-100">
                                     <tr>
-                                        <td colspan="6" class="p-6 text-center text-slate-400">Memuat data dari POS & Firebase...</td>
+                                        <td colspan="6" class="p-6 text-center text-slate-400">Memuat data langsung dari POS GBA...</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -237,19 +232,22 @@
         </main>
     </div>
 
-    <!-- Firebase SDK v10 Modular & Auto-Sync POS Logic -->
+    <!-- Firebase SDK v10 Modular & Terhubung Langsung ke Project GBA-POS -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, push, set, update, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
         import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
+        // Konfigurasi Firebase disatukan langsung ke database GBA-POS
         const firebaseConfig = {
-            apiKey: "AIzaSyCHcWbJkxkCLZjcLN8TNZn1sMAzviivClw",
-            authDomain: "gba-accounting.firebaseapp.com",
-            projectId: "gba-accounting",
-            storageBucket: "gba-accounting.appspot.com",
-            messagingSenderId: "786485035397",
-            appId: "1:786485035397:web:ccb5bc581bb784ff8704ec"
+            apiKey: "AIzaSyDFxofvYuhyIn9Jg1LHUKrL6v6Ts3Ql4Hng",
+            authDomain: "gba-pos.firebaseapp.com",
+            databaseURL: "https://gba-pos-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "gba-pos",
+            storageBucket: "gba-pos.appspot.com",
+            messagingSenderId: "1068952660485",
+            appId: "1:1068952660485:web:92cb34918599d560060a6c",
+            measurementId: "G-HRMP4L1EF0"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -332,8 +330,8 @@
             editTxIdInput.value = '';
             document.getElementById('tx-date').valueAsDate = new Date();
             customCategoryBox.classList.add('hidden');
-            formTitle.innerHTML = `<i class="fa-solid fa-circle-plus text-indigo-600 mr-2"></i> Tambah Transaksi Manual`;
-            submitBtn.textContent = 'Simpan Transaksi Manual';
+            formTitle.innerHTML = `<i class="fa-solid fa-circle-plus text-indigo-600 mr-2"></i> Catat Pengeluaran / Biaya`;
+            submitBtn.textContent = 'Simpan Pengeluaran';
             btnCancelEdit.classList.add('hidden');
         }
 
@@ -344,7 +342,7 @@
 
             const editId = editTxIdInput.value;
             const date = document.getElementById('tx-date').value;
-            const type = document.getElementById('tx-type').value;
+            const type = 'Pengeluaran';
             
             let category = categorySelect.value;
             if (category === 'ADD_NEW') {
@@ -369,16 +367,16 @@
                 }
 
                 if (editId) {
-                    const txRef = ref(db, `gba_finance/transactions/${editId}`);
+                    const txRef = ref(db, `gba_accounting_expenses/${editId}`);
                     await update(txRef, { date, type, category, desc, amount, fileUrl });
-                    alert('Transaksi berhasil diperbarui!');
+                    alert('Pengeluaran berhasil diperbarui!');
                 } else {
-                    const txRef = ref(db, 'gba_finance/transactions');
+                    const txRef = ref(db, 'gba_accounting_expenses');
                     const newTxRef = push(txRef);
                     await set(newTxRef, {
-                        date, type, category, desc, amount, fileUrl, createdAt: Date.now(), source: 'manual'
+                        date, type, category, desc, amount, fileUrl, createdAt: Date.now(), source: 'manual_expense'
                     });
-                    alert('Transaksi berhasil disimpan!');
+                    alert('Pengeluaran berhasil disimpan!');
                 }
 
                 resetForm();
@@ -393,13 +391,12 @@
         window.editTransaction = function(id) {
             const tx = allTransactions.find(t => t.id === id);
             if (!tx || tx.source === 'pos') {
-                alert('Transaksi dari POS otomatis tidak dapat diedit manual dari sini.');
+                alert('Transaksi penjualan dari POS otomatis tidak dapat diedit dari sini.');
                 return;
             }
 
             editTxIdInput.value = tx.id;
             document.getElementById('tx-date').value = tx.date;
-            document.getElementById('tx-type').value = tx.type;
             
             let optionExists = false;
             for (let i = 0; i < categorySelect.options.length; i++) {
@@ -421,8 +418,8 @@
             document.getElementById('tx-desc').value = tx.desc;
             document.getElementById('tx-amount').value = tx.amount;
 
-            formTitle.innerHTML = `<i class="fa-solid fa-pen-to-square text-amber-600 mr-2"></i> Edit Transaksi`;
-            submitBtn.textContent = 'Perbarui Transaksi';
+            formTitle.innerHTML = `<i class="fa-solid fa-pen-to-square text-amber-600 mr-2"></i> Edit Pengeluaran`;
+            submitBtn.textContent = 'Perbarui Pengeluaran';
             btnCancelEdit.classList.remove('hidden');
             form.scrollIntoView({ behavior: 'smooth' });
         }
@@ -434,10 +431,10 @@
                 return;
             }
 
-            if (confirm('Apakah Anda yakin ingin menghapus transaksi ini?')) {
+            if (confirm('Apakah Anda yakin ingin menghapus pengeluaran ini?')) {
                 try {
-                    await remove(ref(db, `gba_finance/transactions/${id}`));
-                    alert('Transaksi berhasil dihapus.');
+                    await remove(ref(db, `gba_accounting_expenses/${id}`));
+                    alert('Pengeluaran berhasil dihapus.');
                 } catch (error) {
                     console.error("Gagal menghapus:", error);
                     alert('Terjadi kesalahan saat menghapus data.');
@@ -446,7 +443,7 @@
         }
 
         let allTransactions = [];
-        let manualTransactions = [];
+        let expenseTransactions = [];
         let posTransactions = [];
 
         const txTableBody = document.getElementById('transaction-table-body');
@@ -455,18 +452,18 @@
         const netBalanceEl = document.getElementById('net-balance');
         const filterPeriodSelect = document.getElementById('filter-period');
 
-        // 1. Ambil Data Keuangan Manual
-        const financeRef = ref(db, 'gba_finance/transactions');
-        onValue(financeRef, (snapshot) => {
+        // 1. Ambil Data Pengeluaran Manual dari database POS yang sama
+        const expenseRef = ref(db, 'gba_accounting_expenses');
+        onValue(expenseRef, (snapshot) => {
             const data = snapshot.val();
-            manualTransactions = [];
+            expenseTransactions = [];
             if (data) {
-                manualTransactions = Object.entries(data).map(([id, val]) => ({ id, ...val, source: val.source || 'manual' }));
+                expenseTransactions = Object.entries(data).map(([id, val]) => ({ id, ...val, source: 'manual_expense' }));
             }
             mergeAndRender();
         });
 
-        // 2. Ambil Data Penjualan POS (Menyesuaikan dengan struktur data POS standar)
+        // 2. Ambil Data Penjualan Otomatis langsung dari transaksi POS
         const posRef = ref(db, 'transactions');
         onValue(posRef, (snapshot) => {
             const data = snapshot.val();
@@ -474,7 +471,6 @@
             if (data) {
                 posTransactions = Object.entries(data).map(([id, val]) => {
                     let totalNominal = Number(val.total || val.amount || val.omset || 0);
-                    // Jika tersimpan sebagai list item, hitung totalnya
                     if (!totalNominal && val.items && Array.isArray(val.items)) {
                         totalNominal = val.items.reduce((sum, item) => sum + (Number(item.price || item.harga || 0) * Number(item.qty || 1)), 0);
                     }
@@ -483,7 +479,7 @@
                         date: val.date || val.tanggal || new Date().toISOString().slice(0, 10),
                         type: 'Pemasukan',
                         category: 'Penjualan POS',
-                        desc: val.customer || val.pelanggan ? `Penjualan ke ${val.customer || val.pelanggan}` : (val.desc || 'Transaksi POS Kasir'),
+                        desc: val.customer || val.pelanggan ? `Penjualan ke ${val.customer || val.pelanggan}` : (val.desc || 'Transaksi Penjualan POS'),
                         amount: totalNominal,
                         fileUrl: '',
                         createdAt: val.createdAt || val.timestamp || Date.now(),
@@ -495,7 +491,7 @@
         });
 
         function mergeAndRender() {
-            allTransactions = [...manualTransactions, ...posTransactions];
+            allTransactions = [...expenseTransactions, ...posTransactions];
             allTransactions.sort((a, b) => b.createdAt - a.createdAt);
             applyFilter();
         }
@@ -532,7 +528,7 @@
             let totalExpense = 0;
 
             if (transactions.length === 0) {
-                txTableBody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400">Tidak ada data transaksi pada periode ini.</td></tr>`;
+                txTableBody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400">Belum ada data transaksi pada periode ini.</td></tr>`;
                 totalIncomeEl.textContent = 'Rp 0';
                 totalExpenseEl.textContent = 'Rp 0';
                 netBalanceEl.textContent = 'Rp 0';
@@ -553,7 +549,7 @@
                     : `<span class="text-slate-400 text-xs">-</span>`;
 
                 const actionHtml = tx.source === 'pos' 
-                    ? `<span class="text-[10px] bg-indigo-50 text-indigo-600 px-2 py-1 rounded font-bold">Auto POS</span>`
+                    ? `<span class="text-[10px] bg-indigo-50 text-indigo-600 px-2.5 py-1 rounded-full font-bold">Auto POS</span>`
                     : `<button onclick="editTransaction('${tx.id}')" class="px-2 py-1 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg text-xs font-medium" title="Edit"><i class="fa-solid fa-pen"></i></button>
                        <button onclick="deleteTransaction('${tx.id}')" class="px-2 py-1 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg text-xs font-medium" title="Hapus"><i class="fa-solid fa-trash"></i></button>`;
 
