@@ -341,7 +341,7 @@
         </div>
     </div>
 
-    <!-- Firebase SDK v10 Modular & Pemetaan custName Sesuai POS -->
+    <!-- Firebase SDK v10 Modular & Relasi Master Customer Akurat -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, push, set, update, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
@@ -527,6 +527,7 @@
         let expenseTransactions = [];
         let posTransactions = [];
         let rawPosTransactions = [];
+        let customersDataObj = {};
 
         let cashflowPage = 1;
         const limitCashflowSelect = document.getElementById('limit-cashflow');
@@ -540,6 +541,12 @@
         const netBalanceEl = document.getElementById('net-balance');
         const filterPeriodSelect = document.getElementById('filter-period');
 
+        // Ambil Data Master Customers untuk Pencocokan Nama Konsumen
+        onValue(ref(db, 'customers'), (snapshot) => {
+            customersDataObj = snapshot.val() || {};
+            if (rawPosTransactions.length > 0) processPosTransactions(rawPosTransactions);
+        });
+
         onValue(ref(db, 'gba_accounting_expenses'), (snapshot) => {
             const data = snapshot.val();
             expenseTransactions = [];
@@ -549,36 +556,59 @@
 
         onValue(ref(db, 'transactions'), (snapshot) => {
             const data = snapshot.val();
-            posTransactions = [];
             rawPosTransactions = [];
             if (data) {
                 rawPosTransactions = Object.entries(data).map(([id, val]) => ({ id, ...val }));
-                posTransactions = rawPosTransactions.map(val => {
-                    let totalNominal = Number(val.total || val.amount || val.omset || 0);
-                    if (!totalNominal && val.items && Array.isArray(val.items)) {
-                        totalNominal = val.items.reduce((sum, item) => sum + (Number(item.price || item.harga || 0) * Number(item.qty || 1)), 0);
-                    }
-                    
-                    // Mengambil nama konsumen langsung dari properti custName sesuai database POS
-                    const customerName = val.custName || val.KONSUMEN || val.konsumen || val.customer || val.pelanggan || val.buyer || val.nama || val.name || 'Pelanggan Umum';
-                    const invNumber = val.idtrx || val.id || ('INV-' + String(val.id || '').slice(-6).toUpperCase());
-
-                    return {
-                        id: 'pos_' + val.id,
-                        date: val.date || val.tanggal || new Date().toISOString().slice(0, 10),
-                        type: 'Pemasukan',
-                        category: 'Penjualan POS (' + invNumber + ')',
-                        desc: customerName,
-                        amount: totalNominal,
-                        fileUrl: '',
-                        createdAt: val.createdAt || val.timestamp || Date.now(),
-                        source: 'pos',
-                        raw: val
-                    };
-                });
+                processPosTransactions(rawPosTransactions);
+            } else {
+                posTransactions = [];
+                mergeAndRender();
             }
-            mergeAndRender();
         });
+
+        function processPosTransactions(rawData) {
+            posTransactions = rawData.map(val => {
+                let totalNominal = Number(val.total || val.amount || val.omset || 0);
+                if (!totalNominal && val.items && Array.isArray(val.items)) {
+                    totalNominal = val.items.reduce((sum, item) => sum + (Number(item.price || item.harga || 0) * Number(item.qty || 1)), 0);
+                }
+                
+                // Cari nama konsumen: cek dari custKey ke master customers, atau properti langsung
+                let customerName = 'Pelanggan Umum';
+                if (val.custKey && customersDataObj[val.custKey] && customersDataObj[val.custKey].name) {
+                    customerName = customersDataObj[val.custKey].name;
+                } else if (val.custName) {
+                    customerName = val.custName;
+                } else if (val.KONSUMEN) {
+                    customerName = val.KONSUMEN;
+                } else if (val.konsumen) {
+                    customerName = val.konsumen;
+                } else if (val.customer) {
+                    customerName = val.customer;
+                } else if (val.pelanggan) {
+                    customerName = val.pelanggan;
+                }
+
+                // Simpan nama konsumen yang sudah ketemu ke dalam objek val agar modal detail juga ikut akurat
+                val.resolvedCustomerName = customerName;
+
+                const invNumber = val.idtrx || val.id || ('INV-' + String(val.id || '').slice(-6).toUpperCase());
+
+                return {
+                    id: 'pos_' + val.id,
+                    date: val.date || val.tanggal || new Date().toISOString().slice(0, 10),
+                    type: 'Pemasukan',
+                    category: 'Penjualan POS (' + invNumber + ')',
+                    desc: customerName,
+                    amount: totalNominal,
+                    fileUrl: '',
+                    createdAt: val.createdAt || val.timestamp || Date.now(),
+                    source: 'pos',
+                    raw: val
+                };
+            });
+            mergeAndRender();
+        }
 
         function mergeAndRender() {
             allTransactions = [...expenseTransactions, ...posTransactions];
@@ -703,9 +733,9 @@
         function getFilteredInvoices() {
             const keyword = document.getElementById('search-invoice').value.toLowerCase();
             return rawPosTransactions.filter(inv => {
-                const cust = (inv.custName || inv.KONSUMEN || inv.konsumen || inv.customer || inv.pelanggan || inv.buyer || inv.nama || inv.name || '').toLowerCase();
+                const custName = inv.resolvedCustomerName || inv.custName || inv.KONSUMEN || inv.konsumen || inv.customer || inv.pelanggan || 'Pelanggan Umum';
                 const num = (inv.idtrx || inv.id || '').toLowerCase();
-                return cust.includes(keyword) || num.includes(keyword);
+                return custName.toLowerCase().includes(keyword) || num.includes(keyword);
             });
         }
 
@@ -755,7 +785,7 @@
             const paginatedItems = filtered.slice(startIndex, endIndex);
 
             paginatedItems.forEach(inv => {
-                const customerName = inv.custName || inv.KONSUMEN || inv.konsumen || inv.customer || inv.pelanggan || inv.buyer || inv.nama || inv.name || 'Pelanggan Umum';
+                const customerName = inv.resolvedCustomerName || inv.custName || inv.KONSUMEN || inv.konsumen || inv.customer || inv.pelanggan || 'Pelanggan Umum';
                 const invNumber = inv.idtrx || inv.id || ('INV-' + String(inv.id || '').slice(-6).toUpperCase());
                 let totalAmount = Number(inv.total || inv.amount || inv.omset || 0);
                 if (!totalAmount && inv.items && Array.isArray(inv.items)) {
@@ -807,7 +837,7 @@
         }
 
         window.openInvoiceDetail = function(inv) {
-            const customerName = inv.custName || inv.KONSUMEN || inv.konsumen || inv.customer || inv.pelanggan || inv.buyer || inv.nama || inv.name || 'Pelanggan Umum';
+            const customerName = inv.resolvedCustomerName || inv.custName || inv.KONSUMEN || inv.konsumen || inv.customer || inv.pelanggan || 'Pelanggan Umum';
             document.getElementById('modal-customer').textContent = customerName;
             document.getElementById('modal-date').textContent = inv.date || inv.tanggal || '-';
             document.getElementById('modal-invoice-title').textContent = inv.idtrx || inv.id || ('Invoice #' + String(inv.id || '').slice(-6).toUpperCase());
