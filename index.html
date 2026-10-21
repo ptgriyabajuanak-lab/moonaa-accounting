@@ -341,7 +341,7 @@
         </div>
     </div>
 
-    <!-- Firebase SDK v10 Modular & Pemetaan Konsumen Akurat -->
+    <!-- Firebase SDK v10 Modular & Pemetaan custName Sesuai POS -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, push, set, update, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
@@ -559,9 +559,9 @@
                         totalNominal = val.items.reduce((sum, item) => sum + (Number(item.price || item.harga || 0) * Number(item.qty || 1)), 0);
                     }
                     
-                    // Mengambil nama dari kolom KONSUMEN yang ada di GBA POS
-                    const customerName = val.konsumen || val.customer || val.pelanggan || val.buyer || val.nama || val.name || 'Pelanggan Umum';
-                    const invNumber = val.idtrx || val.invoiceNo || ('INV-' + val.id.slice(-6).toUpperCase());
+                    // Mengambil nama konsumen langsung dari properti custName sesuai database POS
+                    const customerName = val.custName || val.KONSUMEN || val.konsumen || val.customer || val.pelanggan || val.buyer || val.nama || val.name || 'Pelanggan Umum';
+                    const invNumber = val.idtrx || val.id || ('INV-' + String(val.id || '').slice(-6).toUpperCase());
 
                     return {
                         id: 'pos_' + val.id,
@@ -703,8 +703,8 @@
         function getFilteredInvoices() {
             const keyword = document.getElementById('search-invoice').value.toLowerCase();
             return rawPosTransactions.filter(inv => {
-                const cust = (inv.konsumen || inv.customer || inv.pelanggan || inv.buyer || inv.nama || inv.name || '').toLowerCase();
-                const num = (inv.idtrx || inv.invoiceNo || '').toLowerCase();
+                const cust = (inv.custName || inv.KONSUMEN || inv.konsumen || inv.customer || inv.pelanggan || inv.buyer || inv.nama || inv.name || '').toLowerCase();
+                const num = (inv.idtrx || inv.id || '').toLowerCase();
                 return cust.includes(keyword) || num.includes(keyword);
             });
         }
@@ -755,8 +755,8 @@
             const paginatedItems = filtered.slice(startIndex, endIndex);
 
             paginatedItems.forEach(inv => {
-                const customerName = inv.konsumen || inv.customer || inv.pelanggan || inv.buyer || inv.nama || inv.name || 'Pelanggan Umum';
-                const invNumber = inv.idtrx || inv.invoiceNo || ('INV-' + inv.id.slice(-6).toUpperCase());
+                const customerName = inv.custName || inv.KONSUMEN || inv.konsumen || inv.customer || inv.pelanggan || inv.buyer || inv.nama || inv.name || 'Pelanggan Umum';
+                const invNumber = inv.idtrx || inv.id || ('INV-' + String(inv.id || '').slice(-6).toUpperCase());
                 let totalAmount = Number(inv.total || inv.amount || inv.omset || 0);
                 if (!totalAmount && inv.items && Array.isArray(inv.items)) {
                     totalAmount = inv.items.reduce((sum, item) => sum + (Number(item.price || item.harga || 0) * Number(item.qty || 1)), 0);
@@ -807,10 +807,10 @@
         }
 
         window.openInvoiceDetail = function(inv) {
-            const customerName = inv.konsumen || inv.customer || inv.pelanggan || inv.buyer || inv.nama || inv.name || 'Pelanggan Umum';
+            const customerName = inv.custName || inv.KONSUMEN || inv.konsumen || inv.customer || inv.pelanggan || inv.buyer || inv.nama || inv.name || 'Pelanggan Umum';
             document.getElementById('modal-customer').textContent = customerName;
             document.getElementById('modal-date').textContent = inv.date || inv.tanggal || '-';
-            document.getElementById('modal-invoice-title').textContent = inv.idtrx || inv.invoiceNo || ('Invoice #' + inv.id.slice(-6).toUpperCase());
+            document.getElementById('modal-invoice-title').textContent = inv.idtrx || inv.id || ('Invoice #' + String(inv.id || '').slice(-6).toUpperCase());
 
             const itemsBody = document.getElementById('modal-items-body');
             itemsBody.innerHTML = '';
