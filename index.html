@@ -8,13 +8,14 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome untuk Icon -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js untuk Grafik Keuangan -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @media print {
             body { background: white; }
             .no-print { display: none; }
             .print-only { display: block; }
         }
-        /* Custom smooth scrolling for mobile tables */
         .table-container::-webkit-scrollbar {
             height: 6px;
         }
@@ -79,9 +80,8 @@
             <!-- Content Body -->
             <div class="p-4 md:p-6 space-y-4 md:space-y-6 max-w-7xl mx-auto w-full">
                 
-                <!-- Summary Cards (Mobile Optimized Grid) -->
+                <!-- Summary Cards -->
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-6">
-                    <!-- Total Pemasukan -->
                     <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
                         <div>
                             <p class="text-xs text-slate-500 font-medium">Total Pemasukan</p>
@@ -91,7 +91,6 @@
                             <i class="fa-solid fa-arrow-trend-up"></i>
                         </div>
                     </div>
-                    <!-- Total Pengeluaran -->
                     <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
                         <div>
                             <p class="text-xs text-slate-500 font-medium">Total Pengeluaran</p>
@@ -101,7 +100,6 @@
                             <i class="fa-solid fa-arrow-trend-down"></i>
                         </div>
                     </div>
-                    <!-- Saldo Kas Bersih -->
                     <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
                         <div>
                             <p class="text-xs text-slate-500 font-medium">Saldo Kas Bersih</p>
@@ -110,6 +108,16 @@
                         <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-base shrink-0">
                             <i class="fa-solid fa-wallet"></i>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Grafik Analisis Keuangan -->
+                <div class="bg-white p-4 md:p-6 rounded-2xl border border-slate-200/80 shadow-sm no-print">
+                    <h2 class="text-base font-bold text-slate-800 mb-3 flex items-center">
+                        <i class="fa-solid fa-chart-column text-indigo-600 mr-2"></i> Grafik Perbandingan Keuangan
+                    </h2>
+                    <div class="relative h-64 md:h-72 w-full">
+                        <canvas id="financeChart"></canvas>
                     </div>
                 </div>
 
@@ -225,7 +233,7 @@
         </main>
     </div>
 
-    <!-- Firebase SDK v10 Modular -->
+    <!-- Firebase SDK v10 Modular & Chart Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, push, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
@@ -245,6 +253,54 @@
         const storage = getStorage(app);
 
         document.getElementById('tx-date').valueAsDate = new Date();
+
+        // Inisialisasi Grafik Chart.js
+        let financeChart;
+        function initChart(income, expense, net) {
+            const ctx = document.getElementById('financeChart').getContext('2d');
+            if (financeChart) {
+                financeChart.destroy();
+            }
+            financeChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Total Pemasukan', 'Total Pengeluaran', 'Saldo Kas Bersih'],
+                    datasets: [{
+                        label: 'Nominal (Rp)',
+                        data: [income, expense, net],
+                        backgroundColor: [
+                            'rgba(16, 185, 129, 0.8)', // Emerald
+                            'rgba(244, 63, 94, 0.8)',  // Rose
+                            'rgba(99, 102, 241, 0.8)'  // Indigo
+                        ],
+                        borderColor: [
+                            'rgb(16, 185, 129)',
+                            'rgb(244, 63, 94)',
+                            'rgb(99, 102, 241)'
+                        ],
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return 'Rp ' + value.toLocaleString('id-ID');
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
 
         const categorySelect = document.getElementById('tx-category');
         const customCategoryBox = document.getElementById('custom-category-box');
@@ -374,6 +430,7 @@
                 totalIncomeEl.textContent = 'Rp 0';
                 totalExpenseEl.textContent = 'Rp 0';
                 netBalanceEl.textContent = 'Rp 0';
+                initChart(0, 0, 0);
                 return;
             }
 
@@ -414,6 +471,9 @@
             totalIncomeEl.textContent = `Rp ${totalIncome.toLocaleString('id-ID')}`;
             totalExpenseEl.textContent = `Rp ${totalExpense.toLocaleString('id-ID')}`;
             netBalanceEl.textContent = `Rp ${net.toLocaleString('id-ID')}`;
+
+            // Update Grafik Chart.js
+            initChart(totalIncome, totalExpense, net);
         }
 
         document.getElementById('btn-export').addEventListener('click', () => {
