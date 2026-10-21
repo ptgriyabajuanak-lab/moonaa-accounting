@@ -177,7 +177,7 @@
                             </form>
                         </div>
 
-                        <!-- Laporan Arus Kas Card -->
+                        <!-- Laporan Arus Kas Card dengan Paginasi & Per-Page Selector -->
                         <div class="bg-white p-4 md:p-6 rounded-2xl border border-slate-200/80 shadow-sm lg:col-span-2 flex flex-col space-y-4">
                             <div class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 pb-3 border-b border-slate-100 no-print">
                                 <div class="flex items-center space-x-2 w-full sm:w-auto">
@@ -201,10 +201,19 @@
                                 </div>
                             </div>
 
-                            <div class="flex justify-between items-center">
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                                 <h2 class="text-base font-bold text-slate-800 flex items-center">
-                                    <i class="fa-solid fa-file-invoice-dollar text-indigo-600 mr-2"></i> Laporan Arus Kas (Otomatis dari POS & Biaya)
+                                    <i class="fa-solid fa-file-invoice-dollar text-indigo-600 mr-2"></i> Laporan Arus Kas
                                 </h2>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-xs text-slate-500 font-medium">Tampil:</span>
+                                    <select id="limit-cashflow" class="px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs bg-slate-50 font-semibold focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                                        <option value="5">5</option>
+                                        <option value="10" selected>10</option>
+                                        <option value="20">20</option>
+                                    </select>
+                                    <span class="text-xs text-slate-500 font-medium">per halaman</span>
+                                </div>
                             </div>
 
                             <div class="table-container overflow-x-auto flex-1 -mx-4 sm:mx-0 px-4 sm:px-0">
@@ -226,11 +235,17 @@
                                     </tbody>
                                 </table>
                             </div>
+
+                            <!-- Pagination Arus Kas -->
+                            <div class="flex flex-col sm:flex-row justify-between items-center pt-3 border-t border-slate-100 gap-2">
+                                <span id="cashflow-pagination-info" class="text-xs text-slate-500 font-medium">Menampilkan 0 dari 0 data</span>
+                                <div class="flex items-center space-x-1.5" id="cashflow-pagination-buttons"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- TAB 2: DAFTAR BON / INVOICE DENGAN PAGINATION -->
+                <!-- TAB 2: DAFTAR BON / INVOICE DENGAN PILIHAN PER-PAGE -->
                 <div id="tab-invoices" class="hidden space-y-4">
                     <div class="bg-white p-4 md:p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
                         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100">
@@ -240,8 +255,18 @@
                                 </h2>
                                 <p class="text-xs text-slate-400 mt-0.5">Klik salah satu bon untuk melihat detail rincian produk yang dibeli</p>
                             </div>
-                            <div class="w-full sm:w-72">
-                                <input type="text" id="search-invoice" placeholder="Cari nama pelanggan / no bon..." class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs md:text-sm bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-xs text-slate-500 font-medium">Tampil:</span>
+                                    <select id="limit-invoice" class="px-2.5 py-2 border border-slate-300 rounded-xl text-xs bg-slate-50 font-semibold focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                                        <option value="5">5</option>
+                                        <option value="10" selected>10</option>
+                                        <option value="20">20</option>
+                                    </select>
+                                </div>
+                                <div class="w-full sm:w-64">
+                                    <input type="text" id="search-invoice" placeholder="Cari pelanggan / no bon..." class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs md:text-sm bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                </div>
                             </div>
                         </div>
 
@@ -250,12 +275,10 @@
                             <p class="text-center text-slate-400 py-8">Memuat daftar bon dari POS...</p>
                         </div>
 
-                        <!-- Pagination Controls (Tombol Halaman) -->
-                        <div id="pagination-container" class="flex flex-col sm:flex-row justify-between items-center pt-4 border-t border-slate-100 gap-3">
-                            <span id="pagination-info" class="text-xs text-slate-500 font-medium">Menampilkan 0 dari 0 data</span>
-                            <div class="flex items-center space-x-1.5" id="pagination-buttons">
-                                <!-- Tombol halaman di-generate via JS -->
-                            </div>
+                        <!-- Pagination Controls Invoice -->
+                        <div class="flex flex-col sm:flex-row justify-between items-center pt-4 border-t border-slate-100 gap-3">
+                            <span id="invoice-pagination-info" class="text-xs text-slate-500 font-medium">Menampilkan 0 dari 0 data</span>
+                            <div class="flex items-center space-x-1.5" id="invoice-pagination-buttons"></div>
                         </div>
                     </div>
                 </div>
@@ -300,9 +323,7 @@
                                     <th class="p-2.5 text-right">Subtotal</th>
                                 </tr>
                             </thead>
-                            <tbody id="modal-items-body" class="divide-y divide-slate-100">
-                                <!-- Diisi via JS -->
-                            </tbody>
+                            <tbody id="modal-items-body" class="divide-y divide-slate-100"></tbody>
                         </table>
                     </div>
                 </div>
@@ -320,7 +341,7 @@
         </div>
     </div>
 
-    <!-- Firebase SDK v10 Modular & Pagination Logic -->
+    <!-- Firebase SDK v10 Modular & Dual Pagination Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, push, set, update, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
@@ -476,14 +497,45 @@
             }
         });
 
+        window.editTransaction = function(id) {
+            const tx = allTransactions.find(t => t.id === id);
+            if (!tx || tx.source === 'pos') return;
+            editTxIdInput.value = tx.id;
+            document.getElementById('tx-date').value = tx.date;
+            categorySelect.value = tx.category;
+            document.getElementById('tx-desc').value = tx.desc;
+            document.getElementById('tx-amount').value = tx.amount;
+            formTitle.innerHTML = `<i class="fa-solid fa-pen-to-square text-amber-600 mr-2"></i> Edit Pengeluaran`;
+            submitBtn.textContent = 'Perbarui Pengeluaran';
+            btnCancelEdit.classList.remove('hidden');
+            form.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        window.deleteTransaction = async function(id) {
+            const tx = allTransactions.find(t => t.id === id);
+            if (tx && tx.source === 'pos') return;
+            if (confirm('Apakah Anda yakin ingin menghapus pengeluaran ini?')) {
+                try {
+                    await remove(ref(db, `gba_accounting_expenses/${id}`));
+                    alert('Pengeluaran berhasil dihapus.');
+                } catch (error) {
+                    alert('Gagal menghapus data.');
+                }
+            }
+        }
+
         let allTransactions = [];
         let expenseTransactions = [];
         let posTransactions = [];
         let rawPosTransactions = [];
 
-        // Variabel Pagination Invoice (Dibatasi 6 bon per halaman agar pas di layar tanpa scroll panjang)
-        let currentPage = 1;
-        const itemsPerPage = 6;
+        // State Pagination Arus Kas
+        let cashflowPage = 1;
+        const limitCashflowSelect = document.getElementById('limit-cashflow');
+
+        // State Pagination Invoice
+        let invoicePage = 1;
+        const limitInvoiceSelect = document.getElementById('limit-invoice');
 
         const txTableBody = document.getElementById('transaction-table-body');
         const totalIncomeEl = document.getElementById('total-income');
@@ -535,7 +587,8 @@
             updateFilteredInvoices();
         }
 
-        filterPeriodSelect.addEventListener('change', applyFilter);
+        filterPeriodSelect.addEventListener('change', () => { cashflowPage = 1; applyFilter(); });
+        limitCashflowSelect.addEventListener('change', () => { cashflowPage = 1; applyFilter(); });
 
         function applyFilter() {
             const period = filterPeriodSelect.value;
@@ -555,27 +608,46 @@
                 return true;
             });
 
-            renderTable(filtered);
-        }
-
-        function renderTable(transactions) {
-            txTableBody.innerHTML = '';
+            // Hitung Total Summary dari semua data yang terfilter (sebelum dipotong pagination)
             let totalIncome = 0;
             let totalExpense = 0;
+            filtered.forEach(tx => {
+                if (tx.type === 'Pemasukan') totalIncome += Number(tx.amount);
+                else totalExpense += Number(tx.amount);
+            });
+            const net = totalIncome - totalExpense;
+            totalIncomeEl.textContent = `Rp ${totalIncome.toLocaleString('id-ID')}`;
+            totalExpenseEl.textContent = `Rp ${totalExpense.toLocaleString('id-ID')}`;
+            netBalanceEl.textContent = `Rp ${net.toLocaleString('id-ID')}`;
+            initChart(totalIncome, totalExpense, net);
 
-            if (transactions.length === 0) {
+            renderCashflowTableWithPagination(filtered);
+        }
+
+        // Render Arus Kas dengan Pagination & Per-Page Selector
+        function renderCashflowTableWithPagination(transactions) {
+            txTableBody.innerHTML = '';
+            const itemsPerPage = parseInt(limitCashflowSelect.value);
+            const totalItems = transactions.length;
+            const paginationInfo = document.getElementById('cashflow-pagination-info');
+            const paginationButtons = document.getElementById('cashflow-pagination-buttons');
+
+            if (totalItems === 0) {
                 txTableBody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400">Belum ada data transaksi pada periode ini.</td></tr>`;
-                totalIncomeEl.textContent = 'Rp 0';
-                totalExpenseEl.textContent = 'Rp 0';
-                netBalanceEl.textContent = 'Rp 0';
-                initChart(0, 0, 0);
+                paginationInfo.textContent = `Menampilkan 0 dari 0 data`;
+                paginationButtons.innerHTML = '';
                 return;
             }
 
-            transactions.forEach((tx) => {
-                if (tx.type === 'Pemasukan') totalIncome += Number(tx.amount);
-                else totalExpense += Number(tx.amount);
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+            if (cashflowPage > totalPages) cashflowPage = totalPages;
+            if (cashflowPage < 1) cashflowPage = 1;
 
+            const startIndex = (cashflowPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const paginatedItems = transactions.slice(startIndex, endIndex);
+
+            paginatedItems.forEach((tx) => {
                 const badgeColor = tx.type === 'Pemasukan' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700';
                 const fileLinkHtml = tx.fileUrl ? `<a href="${tx.fileUrl}" target="_blank" class="px-2 py-1 bg-indigo-50 text-indigo-700 rounded-lg text-xs">Lihat</a>` : `-`;
                 const actionHtml = tx.source === 'pos' ? `<span class="text-[10px] bg-indigo-50 text-indigo-600 px-2.5 py-1 rounded-full font-bold">Auto POS</span>` : `
@@ -600,14 +672,37 @@
                 `;
             });
 
-            const net = totalIncome - totalExpense;
-            totalIncomeEl.textContent = `Rp ${totalIncome.toLocaleString('id-ID')}`;
-            totalExpenseEl.textContent = `Rp ${totalExpense.toLocaleString('id-ID')}`;
-            netBalanceEl.textContent = `Rp ${net.toLocaleString('id-ID')}`;
-            initChart(totalIncome, totalExpense, net);
+            paginationInfo.textContent = `Menampilkan ${startIndex + 1}-${Math.min(endIndex, totalItems)} dari ${totalItems} data`;
+            
+            paginationButtons.innerHTML = '';
+            paginationButtons.innerHTML += `
+                <button onclick="changeCashflowPage(${cashflowPage - 1})" ${cashflowPage === 1 ? 'disabled class="px-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-300 bg-slate-50 cursor-not-allowed"' : 'class="px-3 py-1.5 rounded-lg border border-slate-300 text-xs text-slate-700 hover:bg-slate-100 font-medium"'}>
+                    <i class="fa-solid fa-chevron-left mr-1"></i> Prev
+                </button>
+            `;
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= cashflowPage - 1 && i <= cashflowPage + 1)) {
+                    const activeClass = i === cashflowPage 
+                        ? 'px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-xs font-bold shadow-sm shadow-indigo-600/30' 
+                        : 'px-3 py-1.5 rounded-lg border border-slate-300 text-xs text-slate-700 hover:bg-slate-100 font-medium';
+                    paginationButtons.innerHTML += `<button onclick="changeCashflowPage(${i})" class="${activeClass}">${i}</button>`;
+                } else if (i === cashflowPage - 2 || i === cashflowPage + 2) {
+                    paginationButtons.innerHTML += `<span class="px-2 text-slate-400 text-xs">...</span>`;
+                }
+            }
+            paginationButtons.innerHTML += `
+                <button onclick="changeCashflowPage(${cashflowPage + 1})" ${cashflowPage === totalPages ? 'disabled class="px-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-300 bg-slate-50 cursor-not-allowed"' : 'class="px-3 py-1.5 rounded-lg border border-slate-300 text-xs text-slate-700 hover:bg-slate-100 font-medium"'}>
+                    Next <i class="fa-solid fa-chevron-right ml-1"></i>
+                </button>
+            `;
         }
 
-        // Logic Filter & Pagination untuk Daftar Bon / Invoice
+        window.changeCashflowPage = function(page) {
+            cashflowPage = page;
+            applyFilter();
+        }
+
+        // Logic Filter & Pagination untuk Daftar Bon / Invoice dengan pilihan Per-Page
         function getFilteredInvoices() {
             const keyword = document.getElementById('search-invoice').value.toLowerCase();
             return rawPosTransactions.filter(inv => {
@@ -618,7 +713,7 @@
         }
 
         window.updateFilteredInvoices = function() {
-            currentPage = 1;
+            invoicePage = 1;
             renderInvoicesWithPagination();
         }
 
@@ -626,15 +721,21 @@
             updateFilteredInvoices();
         });
 
-        window.changePage = function(page) {
-            currentPage = page;
+        limitInvoiceSelect.addEventListener('change', () => {
+            invoicePage = 1;
+            renderInvoicesWithPagination();
+        });
+
+        window.changeInvoicePage = function(page) {
+            invoicePage = page;
             renderInvoicesWithPagination();
         }
 
         function renderInvoicesWithPagination() {
             const container = document.getElementById('invoice-list-container');
-            const paginationInfo = document.getElementById('pagination-info');
-            const paginationButtons = document.getElementById('pagination-buttons');
+            const paginationInfo = document.getElementById('invoice-pagination-info');
+            const paginationButtons = document.getElementById('invoice-pagination-buttons');
+            const itemsPerPage = parseInt(limitInvoiceSelect.value);
             
             container.innerHTML = '';
             const filtered = getFilteredInvoices();
@@ -649,10 +750,10 @@
             }
 
             const totalPages = Math.ceil(totalItems / itemsPerPage);
-            if (currentPage > totalPages) currentPage = totalPages;
-            if (currentPage < 1) currentPage = 1;
+            if (invoicePage > totalPages) invoicePage = totalPages;
+            if (invoicePage < 1) invoicePage = 1;
 
-            const startIndex = (currentPage - 1) * itemsPerPage;
+            const startIndex = (invoicePage - 1) * itemsPerPage;
             const endIndex = startIndex + itemsPerPage;
             const paginatedItems = filtered.slice(startIndex, endIndex);
 
@@ -683,34 +784,26 @@
                 `;
             });
 
-            // Info text
             paginationInfo.textContent = `Menampilkan ${startIndex + 1}-${Math.min(endIndex, totalItems)} dari ${totalItems} data`;
 
-            // Render tombol navigasi halaman (Pagination buttons)
             paginationButtons.innerHTML = '';
-            
-            // Tombol Previous
             paginationButtons.innerHTML += `
-                <button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled class="px-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-300 bg-slate-50 cursor-not-allowed"' : 'class="px-3 py-1.5 rounded-lg border border-slate-300 text-xs text-slate-700 hover:bg-slate-100 font-medium"'}>
+                <button onclick="changeInvoicePage(${invoicePage - 1})" ${invoicePage === 1 ? 'disabled class="px-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-300 bg-slate-50 cursor-not-allowed"' : 'class="px-3 py-1.5 rounded-lg border border-slate-300 text-xs text-slate-700 hover:bg-slate-100 font-medium"'}>
                     <i class="fa-solid fa-chevron-left mr-1"></i> Prev
                 </button>
             `;
-
-            // Nomor Halaman
             for (let i = 1; i <= totalPages; i++) {
-                if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
-                    const activeClass = i === currentPage 
+                if (i === 1 || i === totalPages || (i >= invoicePage - 1 && i <= invoicePage + 1)) {
+                    const activeClass = i === invoicePage 
                         ? 'px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-xs font-bold shadow-sm shadow-indigo-600/30' 
                         : 'px-3 py-1.5 rounded-lg border border-slate-300 text-xs text-slate-700 hover:bg-slate-100 font-medium';
-                    paginationButtons.innerHTML += `<button onclick="changePage(${i})" class="${activeClass}">${i}</button>`;
-                } else if (i === currentPage - 2 || i === currentPage + 2) {
+                    paginationButtons.innerHTML += `<button onclick="changeInvoicePage(${i})" class="${activeClass}">${i}</button>`;
+                } else if (i === invoicePage - 2 || i === invoicePage + 2) {
                     paginationButtons.innerHTML += `<span class="px-2 text-slate-400 text-xs">...</span>`;
                 }
             }
-
-            // Tombol Next
             paginationButtons.innerHTML += `
-                <button onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled class="px-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-300 bg-slate-50 cursor-not-allowed"' : 'class="px-3 py-1.5 rounded-lg border border-slate-300 text-xs text-slate-700 hover:bg-slate-100 font-medium"'}>
+                <button onclick="changeInvoicePage(${invoicePage + 1})" ${invoicePage === totalPages ? 'disabled class="px-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-300 bg-slate-50 cursor-not-allowed"' : 'class="px-3 py-1.5 rounded-lg border border-slate-300 text-xs text-slate-700 hover:bg-slate-100 font-medium"'}>
                     Next <i class="fa-solid fa-chevron-right ml-1"></i>
                 </button>
             `;
